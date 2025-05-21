@@ -4,6 +4,13 @@ FROM python:3.8-slim
 # Set the working directory in the container
 WORKDIR /app
 
+# Install Docker client
+# Using docker.io as it's generally available in Debian/Ubuntu repositories
+# Using --no-install-recommends to keep the image size down
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends docker.io && \
+    rm -rf /var/lib/apt/lists/*
+
 # Copy the dependencies file to the working directory
 COPY requirements.txt .
 
