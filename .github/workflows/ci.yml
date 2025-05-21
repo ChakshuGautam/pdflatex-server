@@ -31,6 +31,12 @@ jobs:
           -o output.pdf --fail http://localhost:8000/compile
           echo "Curl request sent."
 
+      - name: Output API logs on failure
+        if: failure()
+        run: |
+          echo "Curl request failed. Displaying API service logs:"
+          docker-compose logs api
+
       - name: Verify PDF output
         run: |
           if [ ! -f output.pdf ]; then
