@@ -1,0 +1,53 @@
+name: CI PDF Compilation Test
+
+on:
+  pull_request:
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+
+      - name: Set up Docker Compose
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y docker-compose
+
+      - name: Build and run services
+        run: docker-compose up -d --build
+
+      - name: Wait for API to be ready
+        run: |
+          echo "Waiting for API service to be ready..."
+          timeout 60s bash -c 'until curl -s http://localhost:8000/docs; do echo "API not ready yet, sleeping..."; sleep 5; done'
+          echo "API service is ready."
+
+      - name: Send curl request to compile LaTeX
+        run: |
+          curl -X POST -H "Content-Type: application/json" \
+          -d '{"source": "\\documentclass{article}\\begin{document}Hello CI from curl!\\end{document}"}' \
+          -o output.pdf --fail http://localhost:8000/compile
+          echo "Curl request sent."
+
+      - name: Verify PDF output
+        run: |
+          if [ ! -f output.pdf ]; then
+            echo "Error: output.pdf not found!"
+            exit 1
+          fi
+          if ! file output.pdf | grep -q "PDF document"; then
+            echo "Error: output.pdf is not a valid PDF document!"
+            file output.pdf # Print file type for debugging
+            exit 1
+          fi
+          if [ $(stat -c%s "output.pdf") -lt 1000 ]; then
+            echo "Warning: output.pdf is very small, might be an error page."
+            # Depending on requirements, this could be an error (exit 1)
+          fi
+          echo "output.pdf seems to be a valid PDF."
+
+      - name: Stop services
+        if: always()
+        run: docker-compose down
