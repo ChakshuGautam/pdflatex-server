@@ -8,7 +8,7 @@ WORKDIR /app
 # Using docker.io as it's generally available in Debian/Ubuntu repositories
 # Using --no-install-recommends to keep the image size down
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends docker.io && \
+    apt-get install -y --no-install-recommends docker.io texlive-latex-base && \
     rm -rf /var/lib/apt/lists/*
 
 # Copy the dependencies file to the working directory

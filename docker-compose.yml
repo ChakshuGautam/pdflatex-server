@@ -1,26 +1,18 @@
 version: '3.8'
 services:
-  pdflatex:
-    image: cristiangreco/pdflatex
-    # This service is defined to acknowledge its use, 
-    # though the API service calls it directly via docker run.
-    # No command or ports needed here as it's not run directly by compose in this setup.
-
-  api:
+  pdflatex-api:
     build:
       context: .
     ports:
       - "8000:5000" # Host:Container
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+      - ./temp_data:/app/temp_data # NEW: Bind mount host's ./temp_data to container's /container_temp_data
+    environment: # NEW: Pass host path as environment variable
+      HOST_TEMP_DIR: ./temp_data
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:5000/docs || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 5
-      start_period: 20s # Give it some time to start up before first check
-    # The API service needs access to the Docker socket 
-    # to be able to run the pdflatex container.
-    # It also depends on the local Dockerfile to build itself.
-    # The CMD in the Dockerfile ("uvicorn", "main:app", "--host", "0.0.0.0", "--port", "5000")
-    # will be executed to start the FastAPI application.
+      start_period: 20s
