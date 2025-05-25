@@ -4,7 +4,7 @@ services:
     build:
       context: .
     ports:
-      - "8000:5000" # Host:Container
+      - "9067:5000" # Host:Container
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./temp_data:/app/temp_data # NEW: Bind mount host's ./temp_data to container's /container_temp_data
